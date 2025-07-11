@@ -1,0 +1,94 @@
+WITH debt_lag AS(
+         SELECT *, LAG(`Debt Held by the Public`, 7) OVER (ORDER BY `Record Date`)   AS week_b4_dhpb,
+                 LAG(`Debt Held by the Public`, 30) OVER (ORDER BY `Record Date`)   AS month_b4_dhpb,
+                 LAG(`Debt Held by the Public`, 365) OVER (ORDER BY `Record Date`) AS year_b4_dhpb,
+                 LAG(`Intragovernmental Holdings`, 7) OVER (ORDER BY `Record Date`)   AS week_b4_ig,
+                 LAG(`Intragovernmental Holdings`, 30) OVER (ORDER BY `Record Date`)   AS month_b4_ig,
+                 LAG(`Intragovernmental Holdings`, 365) OVER (ORDER BY `Record Date`) AS year_b4_ig,
+                 LAG(`Total Public Debt Outstanding`, 7) OVER (ORDER BY `Record Date`)   AS week_b4_tdpo,
+                 LAG(`Total Public Debt Outstanding`, 30) OVER (ORDER BY `Record Date`)   AS month_b4_tdpo,
+                 LAG(`Total Public Debt Outstanding`, 365) OVER (ORDER BY `Record Date`) AS year_b4_tdpo
+
+          FROM DebtPenny_19930401_20250623
+/*
+CTE for reference in select query for aritmetic for moving averages and percent changes over time. 
+Fetches previous values offset by week, month, and year
+*/
+)
+
+/*
+Populates table with colums for moving average and percent changes for each column in original dataset 
+Displays values for time series analysis 
+*/
+
+
+SELECT 
+    `Record Date`, (((`Debt Held by the Public` - week_b4_dhpb) / week_b4_dhpb )* 100) AS Debt_Held_by_the_Public_Percent_Change_Weekly,
+    (((`Debt Held by the Public` - month_b4_dhpb) / month_b4_dhpb )* 100) AS Debt_Held_by_the_Public_Percent_Change_Monthly,
+    (((`Debt Held by the Public` - year_b4_dhpb) / year_b4_dhpb )* 100) AS Debt_Held_by_the_Public_Percent_Change_Annual,
+    ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 6 PRECEDING AND CURRENT ROW),3) AS Debt_Held_by_the_Public_Weekly_Moving_Average,
+
+--- Case for month sensitive moving average     
+CASE SUBSTRING(`Record Date`,6,2)
+    WHEN '01' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '02' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 27 PRECEDING AND CURRENT ROW),3)
+    WHEN '03' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '04' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 29 PRECEDING AND CURRENT ROW),3)
+    WHEN '05' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '06' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '07' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '08' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '09' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 29 PRECEDING AND CURRENT ROW),3)
+    WHEN '10' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '11' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 29 PRECEDING AND CURRENT ROW),3)
+    WHEN '12' THEN ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    
+END AS Debt_Held_by_the_Public__Monthly_Moving_Average,
+
+    ROUND(AVG(`Debt Held by the Public`) OVER (ORDER BY `Record Date` ROWS BETWEEN 364 PRECEDING AND CURRENT ROW),3) AS Debt_Held_by_the_Public_Annual_Moving_Average,
+
+    (((`Intragovernmental Holdings` - week_b4_ig) / week_b4_ig )* 100) AS Intragovernmental_Holdings_Percent_Change_Weekly,
+    (((`Intragovernmental Holdings` - month_b4_ig) / month_b4_ig)* 100) AS Intragovernmental_Holdings_Percent_Change_Monthly, 
+    (((`Intragovernmental Holdings` - year_b4_ig) / year_b4_ig )* 100) AS Intragovernmental_Holdings_percent_Change_Annual,
+    ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 6 PRECEDING AND CURRENT ROW),3) AS Intragovernmental_Holdings_Weekly_Moving_Average,
+
+CASE SUBSTRING(`Record Date`,6,2)
+    WHEN '01' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '02' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 27 PRECEDING AND CURRENT ROW),3)
+    WHEN '03' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '04' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 29 PRECEDING AND CURRENT ROW),3)
+    WHEN '05' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '06' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '07' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '08' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '09' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 29 PRECEDING AND CURRENT ROW),3)
+    WHEN '10' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '11' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 29 PRECEDING AND CURRENT ROW),3)
+    WHEN '12' THEN ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    
+END AS IG_MONTHLY_MOVING_AVERAGE,
+       ROUND(AVG(`Intragovernmental Holdings`) OVER (ORDER BY `Record Date` ROWS BETWEEN 364 PRECEDING AND CURRENT ROW),3) AS Intragovernmental_Holdings_Annual_Moving_Average,
+
+       (((`Total Public Debt Outstanding` - week_b4_tdpo) / week_b4_tdpo )* 100) AS Total_Public_Debt_Outstanding_Percent_Change_Weekly,
+       (((`Total Public Debt Outstanding` - month_b4_ig) / month_b4_ig)* 100) AS Total_Public_Debt_Outstanding_Percent_Change_Monthly, 
+       (((`Total Public Debt Outstanding` - year_b4_tdpo) / year_b4_tdpo )* 100) AS Total_Public_Debt_Outstanding_Percent_Change_Annual,
+       ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 6 PRECEDING AND CURRENT ROW),3) AS Total_Public_Debt_Outstanding_Weekly_Moving_Average,
+
+CASE SUBSTRING(`Record Date`,6,2)
+    WHEN '01' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '02' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 27 PRECEDING AND CURRENT ROW),3)
+    WHEN '03' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '04' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 29 PRECEDING AND CURRENT ROW),3)
+    WHEN '05' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '06' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '07' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '08' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '09' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 29 PRECEDING AND CURRENT ROW),3)
+    WHEN '10' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+    WHEN '11' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 29 PRECEDING AND CURRENT ROW),3)
+    WHEN '12' THEN ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 30 PRECEDING AND CURRENT ROW),3)
+END AS Total_Public_Debt_Outstanding_Monthly_Moving_Average,
+
+    ROUND(AVG(`Total Public Debt Outstanding`) OVER (ORDER BY `Record Date` ROWS BETWEEN 364 PRECEDING AND CURRENT ROW),3) AS Total_Public_Debt_Outstanding_Annual_Moving_Average
+FROM debt_lag;
+
